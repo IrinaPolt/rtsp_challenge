@@ -1,3 +1,7 @@
 ffmpeg-python==0.2.0
+ffpyplayer==4.3.5
 numpy==1.24.1
 opencv-python==4.7.0.68
+pynput==1.7.6
+sounddevice==0.4.5
+SoundFile==0.11.0
