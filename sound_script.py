@@ -1,5 +1,4 @@
 import threading
-import os
 import queue
 import sys
 import sounddevice as sd

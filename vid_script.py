@@ -1,6 +1,5 @@
 import os
 import cv2
-import datetime
 import ffmpeg
 import logging
 
@@ -21,20 +20,18 @@ def trim(in_file, out_file, start, end):
              .filter_('atrim', start=start, end=end)
              .filter_('asetpts', pts))
     video_and_audio = ffmpeg.concat(video, audio, v=1, a=1)
-    output = ffmpeg.output(video_and_audio, out_file) # format=?
-    out, err = output.run()
+    output = ffmpeg.output(video_and_audio, out_file)
 
-    logging.info('ffmpeg_trim stdout: %s', out.decode())
-    logging.info('ffmpeg_trim stderr: %s', err.decode())
+    os.system(f'ffprobe -hide_banner {out_file} -report') # вариант логирования: сбор информации о потоке
 
 
 def convert(in_file):
     name, ext = os.path.splitext(in_file)
     out_name = name + '.mp4'
-    out, err = ffmpeg.input(in_file).output(out_name).run()
+    ffmpeg.input(in_file).output(out_name).run()
 
-    logging.info('ffmpeg_convert stdout: %s', out.decode())
-    logging.info('ffmpeg_convert stderr: %s', err.decode())
+    os.system(f'ffprobe -hide_banner {in_file} -report') # вариант логирования: сбор информации о потоке
+
     
 
 def record_from_cam(cam_number, out_file, vid_length = 1000000000000): # default value для vid_length
@@ -47,19 +44,14 @@ def record_from_cam(cam_number, out_file, vid_length = 1000000000000): # default
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter('temp.avi', fourcc, 25, (640,480))
 
-#    start = datetime.datetime.now()
-#    end = start + datetime.timedelta(seconds=vid_length)
-
-# and end > datetime.datetime.now()
-
-    while cap.isOpened(): # программа выполняется, пока (1)работает соединение и (2)не кончилось установленное время
+    while cap.isOpened(): # программа выполняется, пока работает соединение
         ret, frame = cap.read()
         if ret == True:
             out.write(frame)
 
             cv2.imshow('video', frame)
 
-            if cv2.waitKey(1) & 0xFF == 27: # время записи может устанавливаться аргументом или прерываться с клавиатуры
+            if cv2.waitKey(1) & 0xFF == 27: # время записи прерывается с клавиатуры
                 logging.info('The recording was stopped from the keyboard')
                 break
         else:
@@ -74,8 +66,8 @@ def record_from_cam(cam_number, out_file, vid_length = 1000000000000): # default
 
 
 if __name__ == '__main__':
-    os.system('start cmd_.bat')
-    record_from_cam(0, 'ouput.avi') # Запустить камеру и начать запись 30-секундного видео (имеется погрешность)
-    os.system('ffmpeg -i temp.avi -i temp.wav -strict -2 -f avi ' + 'result.avi')  # ffmpeg для слияния
+    os.system('start cmd_.vbe') # начало записи аудио
+    record_from_cam(0, 'ouput.avi') # запуск камеры
+    os.system('ffmpeg -i temp.avi -i temp.wav -strict -2 -f avi ' + 'result.avi')  # слияние
     os.remove('temp.avi') # Удалить промежуточный видеофайл
     os.remove('temp.wav') # Удалить промежуточный аудиофайл
